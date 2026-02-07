@@ -3,11 +3,14 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { GoogleGenAI, Type } from '@google/genai';
 import path from 'path';
+import crypto from 'crypto';
 
 dotenv.config();
 
 const PORT = process.env.PORT || 3001;
 const apiKey = process.env.GENAI_API_KEY || process.env.API_KEY;
+const shareSecret = process.env.SHARE_SIGNING_SECRET || '';
+const publicBaseUrl = process.env.PUBLIC_BASE_URL || '';
 
 const app = express();
 app.use(cors());
@@ -54,10 +57,55 @@ const verdictEmoji = (verdict) => {
   return '🔎';
 };
 
+const base64UrlEncode = (value) => {
+  return Buffer.from(value)
+    .toString('base64')
+    .replace(/=/g, '')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_');
+};
+
+const base64UrlDecode = (value) => {
+  const padded = String(value).replace(/-/g, '+').replace(/_/g, '/');
+  const padLen = (4 - (padded.length % 4)) % 4;
+  const normalized = padded + '='.repeat(padLen);
+  return Buffer.from(normalized, 'base64').toString('utf-8');
+};
+
+const signSharePayload = (payload) => {
+  if (!shareSecret) return '';
+  const body = base64UrlEncode(JSON.stringify(payload));
+  const sig = base64UrlEncode(
+    crypto.createHmac('sha256', shareSecret).update(body).digest()
+  );
+  return `${body}.${sig}`;
+};
+
+const verifyShareToken = (token) => {
+  if (!shareSecret || !token || typeof token !== 'string') return null;
+  const [body, sig] = token.split('.');
+  if (!body || !sig) return null;
+  const expected = base64UrlEncode(
+    crypto.createHmac('sha256', shareSecret).update(body).digest()
+  );
+  try {
+    const match = crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected));
+    if (!match) return null;
+    return JSON.parse(base64UrlDecode(body));
+  } catch (err) {
+    return null;
+  }
+};
+
 app.get('/og', (req, res) => {
-  const score = clampScore(req.query.score);
-  const verdict = sanitizeText(req.query.verdict || 'Unknown', 36);
-  const summary = sanitizeText(req.query.summary || 'Fact-check summary', 140);
+  const token = req.query.token;
+  if (!token) return res.status(400).send('Share token required');
+  const payload = verifyShareToken(token);
+  if (!payload) return res.status(400).send('Invalid share token');
+
+  const score = clampScore(payload.score);
+  const verdict = sanitizeText(payload.verdict || 'Unknown', 36);
+  const summary = sanitizeText(payload.summary || 'Fact-check summary', 140);
   const color = scoreColor(score);
   const emoji = verdictEmoji(verdict);
 
@@ -93,26 +141,29 @@ app.get('/og', (req, res) => {
 });
 
 app.get('/share', (req, res) => {
-  const score = clampScore(req.query.score);
-  const verdict = sanitizeText(req.query.verdict || 'Unknown', 36);
-  const summary = sanitizeText(req.query.summary || 'Fact-check summary', 200);
-  const text = sanitizeText(req.query.text || '', 140);
-  const site = sanitizeText(req.query.site || '', 200);
-  const q = sanitizeText(req.query.q || '', 200);
+  const token = req.query.token;
+  if (!token) return res.status(400).send('Share token required');
+  const payload = verifyShareToken(token);
+  if (!payload) return res.status(400).send('Invalid share token');
+
+  const score = clampScore(payload.score);
+  const verdict = sanitizeText(payload.verdict || 'Unknown', 36);
+  const summary = sanitizeText(payload.summary || 'Fact-check summary', 200);
+  const text = sanitizeText(payload.text || '', 140);
+  const site = sanitizeText(payload.site || '', 200);
+  const q = sanitizeText(payload.q || '', 200);
   const proto = req.headers['x-forwarded-proto'] || req.protocol;
   const host = req.get('host');
   const baseUrl = `${proto}://${host}`;
 
   const ogParams = new URLSearchParams({
-    score: String(score),
-    verdict,
-    summary
+    token: String(token)
   });
   const ogImage = `${baseUrl}/og?${ogParams.toString()}`;
 
   const shareTitle = `${score}% Reliable • ${verdict}`;
   const shareDesc = summary || text || 'View the reliability snapshot.';
-  const canonical = `${baseUrl}/share?${new URLSearchParams({ score: String(score), verdict }).toString()}`;
+  const canonical = `${baseUrl}/share?token=${encodeURIComponent(String(token))}`;
 
   const siteLink = site ? `${site}#/?q=${encodeURIComponent(q || text)}` : '';
 
@@ -211,6 +262,22 @@ app.post('/api/verify', async (req, res) => {
       keyClaims: (data.claims || []).map((c) => ({ claim: c.claim, isVerified: !!c.verified, explanation: c.explanation })),
       sources: uniqueSources
     };
+
+    if (shareSecret && publicBaseUrl) {
+      const payload = {
+        score: result.score,
+        verdict: result.verdict,
+        summary: result.summary,
+        text: result.originalText,
+        site: process.env.PUBLIC_SITE_URL || '',
+        q: result.originalText,
+        ts: result.timestamp
+      };
+      const token = signSharePayload(payload);
+      const shareHost = String(publicBaseUrl).replace(/\/+$/, '');
+      result.shareToken = token;
+      result.shareUrl = `${shareHost}/share?token=${encodeURIComponent(token)}`;
+    }
 
     res.json(result);
   } catch (err) {

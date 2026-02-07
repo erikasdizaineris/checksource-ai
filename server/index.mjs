@@ -174,15 +174,41 @@ app.get('/share', (req, res) => {
     <meta name="twitter:title" content="${escapeHtml(shareTitle)}" />
     <meta name="twitter:description" content="${escapeHtml(shareDesc)}" />
     <meta name="twitter:image" content="${escapeHtml(ogImage)}" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+        background-color: #f8fafc;
+        margin: 0;
+        min-height: 100vh;
+        color: #0f172a;
+      }
+      .cs-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 24px;
+        box-shadow: 0 18px 45px rgba(15, 23, 42, 0.12);
+      }
+      .cs-muted {
+        color: #64748b;
+      }
+      .cs-link {
+        color: #2563eb;
+        text-decoration: none;
+        font-weight: 700;
+      }
+    </style>
   </head>
-  <body style="margin:0; font-family: 'Inter', 'Segoe UI', Arial, sans-serif; background:#f8fafc; color:#0f172a;">
+  <body>
     <div style="max-width:720px; margin:0 auto; padding:48px 24px; text-align:center;">
-      <h1 style="margin:0 0 8px; font-size:28px;">checkSourceAI</h1>
-      <p style="margin:0 0 20px; color:#64748b; font-weight:600;">Reliability Snapshot</p>
-      <div style="display:inline-block; padding:18px 20px; background:#ffffff; border-radius:24px; box-shadow:0 18px 45px rgba(15, 23, 42, 0.12);">
+      <h1 style="margin:0 0 8px; font-size:28px; font-weight:800;">checkSourceAI</h1>
+      <p class="cs-muted" style="margin:0 0 20px; font-weight:600;">Reliability Snapshot</p>
+      <div class="cs-card" style="display:inline-block; padding:18px 20px;">
         <img src="${escapeHtml(ogImage)}" alt="Reliability snapshot" style="width:200px; height:200px; display:block;" />
       </div>
-      ${siteLink ? `<p style=\"margin:22px 0 0;\"><a href=\"${escapeHtml(siteLink)}\" style=\"color:#2563eb; text-decoration:none; font-weight:700;\">Open full analysis →</a></p>` : ''}
+      ${siteLink ? `<p style=\"margin:22px 0 0;\"><a href=\"${escapeHtml(siteLink)}\" class=\"cs-link\">Open full analysis →</a></p>` : ''}
     </div>
   </body>
 </html>`;

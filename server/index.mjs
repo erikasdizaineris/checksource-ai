@@ -111,25 +111,19 @@ app.get('/og', (req, res) => {
 
   const svg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#f8fafc" />
-      <stop offset="100%" stop-color="#e2e8f0" />
-    </linearGradient>
-  </defs>
-  <rect width="200" height="200" rx="22" fill="url(#bg)" />
-  <rect x="14" y="14" width="172" height="172" rx="20" fill="#ffffff" stroke="#e2e8f0" stroke-width="2" />
+  <rect width="200" height="200" rx="22" fill="#f8fafc" />
+  <rect x="14" y="14" width="172" height="172" rx="20" fill="#ffffff" />
 
-  <text x="26" y="40" font-family="'Plus Jakarta Sans', 'Segoe UI', Arial, sans-serif" font-size="16" font-weight="700" fill="#0f172a">checkSourceAI</text>
-  <text x="26" y="58" font-family="'Plus Jakarta Sans', 'Segoe UI', Arial, sans-serif" font-size="10" fill="#64748b">Reliability</text>
+  <text x="26" y="40" font-family="'Inter', 'Segoe UI', Arial, sans-serif" font-size="16" font-weight="700" fill="#0f172a">checkSourceAI</text>
+  <text x="26" y="58" font-family="'Inter', 'Segoe UI', Arial, sans-serif" font-size="10" fill="#64748b">Reliability</text>
 
-  <path d="M50 126 A50 50 0 1 1 150 126" stroke="#e2e8f0" stroke-width="12" stroke-linecap="round" fill="none" />
-  <path d="M50 126 A50 50 0 1 1 150 126" stroke="${color}" stroke-width="12" stroke-linecap="round" fill="none" stroke-dasharray="157" stroke-dashoffset="${157 - Math.round(157 * (score / 100))}" />
+  <path d="M50 126 A50 50 0 1 1 150 126" stroke="#e2e8f0" stroke-width="12" stroke-linecap="butt" fill="none" />
+  <path d="M50 126 A50 50 0 1 1 150 126" stroke="${color}" stroke-width="12" stroke-linecap="butt" fill="none" stroke-dasharray="157" stroke-dashoffset="${157 - Math.round(157 * (score / 100))}" />
 
-  <text x="100" y="120" text-anchor="middle" font-family="'Plus Jakarta Sans', 'Segoe UI', Arial, sans-serif" font-size="36" font-weight="800" fill="${color}">${score}</text>
-  <text x="100" y="138" text-anchor="middle" font-family="'Plus Jakarta Sans', 'Segoe UI', Arial, sans-serif" font-size="12" fill="#94a3b8">/100</text>
+  <text x="100" y="120" text-anchor="middle" font-family="'Inter', 'Segoe UI', Arial, sans-serif" font-size="36" font-weight="800" fill="${color}">${score}</text>
+  <text x="100" y="138" text-anchor="middle" font-family="'Inter', 'Segoe UI', Arial, sans-serif" font-size="12" fill="#94a3b8">/100</text>
 
-  <text x="100" y="166" text-anchor="middle" font-family="'Plus Jakarta Sans', 'Segoe UI', Arial, sans-serif" font-size="12" font-weight="600" fill="#0f172a">${escapeHtml(emoji)} ${escapeHtml(verdict)}</text>
+  <text x="100" y="166" text-anchor="middle" font-family="'Inter', 'Segoe UI', Arial, sans-serif" font-size="12" font-weight="600" fill="#0f172a">${escapeHtml(emoji)} ${escapeHtml(verdict)}</text>
 </svg>`;
 
   res.setHeader('Content-Type', 'image/svg+xml; charset=utf-8');
@@ -181,12 +175,14 @@ app.get('/share', (req, res) => {
     <meta name="twitter:description" content="${escapeHtml(shareDesc)}" />
     <meta name="twitter:image" content="${escapeHtml(ogImage)}" />
   </head>
-  <body style="margin:0; font-family: 'Segoe UI', Arial, sans-serif; background:#0f172a; color:#e2e8f0;">
+  <body style="margin:0; font-family: 'Inter', 'Segoe UI', Arial, sans-serif; background:#f8fafc; color:#0f172a;">
     <div style="max-width:720px; margin:0 auto; padding:48px 24px; text-align:center;">
-      <h1 style="margin:0 0 12px;">checkSourceAI</h1>
-      <p style="margin:0 0 24px; color:#94a3b8;">Reliability Snapshot</p>
-      <img src="${escapeHtml(ogImage)}" alt="Reliability snapshot" style="width:100%; border-radius:24px; box-shadow:0 24px 60px rgba(0,0,0,0.35);" />
-      ${siteLink ? `<p style=\"margin:28px 0 0;\"><a href=\"${escapeHtml(siteLink)}\" style=\"color:#38bdf8; text-decoration:none; font-weight:600;\">Open full analysis →</a></p>` : ''}
+      <h1 style="margin:0 0 8px; font-size:28px;">checkSourceAI</h1>
+      <p style="margin:0 0 20px; color:#64748b; font-weight:600;">Reliability Snapshot</p>
+      <div style="display:inline-block; padding:18px 20px; background:#ffffff; border-radius:24px; box-shadow:0 18px 45px rgba(15, 23, 42, 0.12);">
+        <img src="${escapeHtml(ogImage)}" alt="Reliability snapshot" style="width:200px; height:200px; display:block;" />
+      </div>
+      ${siteLink ? `<p style=\"margin:22px 0 0;\"><a href=\"${escapeHtml(siteLink)}\" style=\"color:#2563eb; text-decoration:none; font-weight:700;\">Open full analysis →</a></p>` : ''}
     </div>
   </body>
 </html>`;

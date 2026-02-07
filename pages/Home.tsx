@@ -33,6 +33,7 @@ const Home: React.FC = () => {
     } catch (err) {
       console.error(err);
       setError('Verification failed. Please try a clearer claim or news headline.');
+    } finally {
       setLoading(false);
     }
   }, [navigate]);

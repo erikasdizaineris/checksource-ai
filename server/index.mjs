@@ -110,34 +110,26 @@ app.get('/og', (req, res) => {
   const emoji = verdictEmoji(verdict);
 
   const svg = `<?xml version="1.0" encoding="UTF-8"?>
-<svg width="800" height="800" viewBox="0 0 800 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#0f172a" />
-      <stop offset="50%" stop-color="#111827" />
-      <stop offset="100%" stop-color="#1e293b" />
-    </linearGradient>
-    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#2563eb" />
-      <stop offset="100%" stop-color="#4f46e5" />
+      <stop offset="0%" stop-color="#f8fafc" />
+      <stop offset="100%" stop-color="#e2e8f0" />
     </linearGradient>
   </defs>
-  <rect width="800" height="800" rx="56" fill="url(#bg)" />
-  <circle cx="640" cy="160" r="120" fill="#1f2937" opacity="0.85" />
-  <circle cx="690" cy="210" r="46" fill="${color}" opacity="0.85" />
-  <rect x="64" y="64" width="220" height="44" rx="22" fill="url(#accent)" />
-  <text x="88" y="94" font-family="'Segoe UI', Arial, sans-serif" font-size="20" fill="#ffffff">checkSourceAI</text>
+  <rect width="200" height="200" rx="22" fill="url(#bg)" />
+  <rect x="14" y="14" width="172" height="172" rx="20" fill="#ffffff" stroke="#e2e8f0" stroke-width="2" />
 
-  <text x="64" y="170" font-family="'Segoe UI', Arial, sans-serif" font-size="22" fill="#94a3b8">Reliability Snapshot</text>
+  <text x="26" y="40" font-family="'Plus Jakarta Sans', 'Segoe UI', Arial, sans-serif" font-size="16" font-weight="700" fill="#0f172a">checkSourceAI</text>
+  <text x="26" y="58" font-family="'Plus Jakarta Sans', 'Segoe UI', Arial, sans-serif" font-size="10" fill="#64748b">Reliability</text>
 
-  <text x="64" y="360" font-family="'Arial Black', 'Segoe UI', sans-serif" font-size="150" fill="${color}">${score}</text>
-  <text x="330" y="360" font-family="'Segoe UI', Arial, sans-serif" font-size="36" fill="#cbd5f5">/ 100</text>
+  <path d="M50 126 A50 50 0 1 1 150 126" stroke="#e2e8f0" stroke-width="12" stroke-linecap="round" fill="none" />
+  <path d="M50 126 A50 50 0 1 1 150 126" stroke="${color}" stroke-width="12" stroke-linecap="round" fill="none" stroke-dasharray="157" stroke-dashoffset="${157 - Math.round(157 * (score / 100))}" />
 
-  <text x="64" y="450" font-family="'Segoe UI', Arial, sans-serif" font-size="34" fill="#e2e8f0">${escapeHtml(emoji)} ${escapeHtml(verdict)}</text>
-  <text x="64" y="510" font-family="'Segoe UI', Arial, sans-serif" font-size="26" fill="#94a3b8">${escapeHtml(summary)}</text>
+  <text x="100" y="120" text-anchor="middle" font-family="'Plus Jakarta Sans', 'Segoe UI', Arial, sans-serif" font-size="36" font-weight="800" fill="${color}">${score}</text>
+  <text x="100" y="138" text-anchor="middle" font-family="'Plus Jakarta Sans', 'Segoe UI', Arial, sans-serif" font-size="12" fill="#94a3b8">/100</text>
 
-  <rect x="64" y="610" width="300" height="58" rx="29" fill="${color}" />
-  <text x="100" y="648" font-family="'Segoe UI', Arial, sans-serif" font-size="22" fill="#ffffff">View Full Analysis →</text>
+  <text x="100" y="166" text-anchor="middle" font-family="'Plus Jakarta Sans', 'Segoe UI', Arial, sans-serif" font-size="12" font-weight="600" fill="#0f172a">${escapeHtml(emoji)} ${escapeHtml(verdict)}</text>
 </svg>`;
 
   res.setHeader('Content-Type', 'image/svg+xml; charset=utf-8');

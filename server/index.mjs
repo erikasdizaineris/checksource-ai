@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import { GoogleGenAI, Type } from '@google/genai';
 import path from 'path';
 import crypto from 'crypto';
+import { Resvg } from '@resvg/resvg-js';
 
 dotenv.config();
 
@@ -97,19 +98,14 @@ const verifyShareToken = (token) => {
   }
 };
 
-app.get('/og', (req, res) => {
-  const token = req.query.token;
-  if (!token) return res.status(400).send('Share token required');
-  const payload = verifyShareToken(token);
-  if (!payload) return res.status(400).send('Invalid share token');
-
+const buildOgSvg = (payload) => {
   const score = clampScore(payload.score);
   const verdict = sanitizeText(payload.verdict || 'Unknown', 36);
   const summary = sanitizeText(payload.summary || 'Fact-check summary', 140);
   const color = scoreColor(score);
   const emoji = verdictEmoji(verdict);
 
-  const svg = `<?xml version="1.0" encoding="UTF-8"?>
+  return `<?xml version="1.0" encoding="UTF-8"?>
 <svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
   <rect width="200" height="200" rx="22" fill="#ffffff" />
   <rect x="14" y="14" width="172" height="172" rx="20" fill="#ffffff" />
@@ -125,10 +121,40 @@ app.get('/og', (req, res) => {
 
   <text x="100" y="166" text-anchor="middle" font-family="'Inter', 'Segoe UI', Arial, sans-serif" font-size="12" font-weight="600" fill="#0f172a">${escapeHtml(emoji)} ${escapeHtml(verdict)}</text>
 </svg>`;
+};
+
+const getSharePayload = (token) => {
+  if (!token) return null;
+  return verifyShareToken(token);
+};
+
+app.get('/og', (req, res) => {
+  const token = req.query.token;
+  if (!token) return res.status(400).send('Share token required');
+  const payload = getSharePayload(token);
+  if (!payload) return res.status(400).send('Invalid share token');
+
+  const svg = buildOgSvg(payload);
 
   res.setHeader('Content-Type', 'image/svg+xml; charset=utf-8');
   res.setHeader('Cache-Control', 'public, max-age=3600');
   res.send(svg);
+});
+
+app.get('/og.png', (req, res) => {
+  const token = req.query.token;
+  if (!token) return res.status(400).send('Share token required');
+  const payload = getSharePayload(token);
+  if (!payload) return res.status(400).send('Invalid share token');
+
+  const svg = buildOgSvg(payload);
+  const resvg = new Resvg(svg, { fitTo: { mode: 'width', value: 200 } });
+  const pngData = resvg.render();
+  const pngBuffer = pngData.asPng();
+
+  res.setHeader('Content-Type', 'image/png');
+  res.setHeader('Cache-Control', 'public, max-age=3600');
+  res.send(pngBuffer);
 });
 
 app.get('/share', (req, res) => {
@@ -150,7 +176,7 @@ app.get('/share', (req, res) => {
   const ogParams = new URLSearchParams({
     token: String(token)
   });
-  const ogImage = `${baseUrl}/og?${ogParams.toString()}`;
+  const ogImage = `${baseUrl}/og.png?${ogParams.toString()}`;
 
   const shareTitle = `${score}% Reliable • ${verdict}`;
   const shareDesc = summary || text || 'View the reliability snapshot.';
@@ -169,6 +195,7 @@ app.get('/share', (req, res) => {
     <meta property="og:title" content="${escapeHtml(shareTitle)}" />
     <meta property="og:description" content="${escapeHtml(shareDesc)}" />
     <meta property="og:image" content="${escapeHtml(ogImage)}" />
+    <meta property="og:image:type" content="image/png" />
     <meta property="og:url" content="${escapeHtml(canonical)}" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="${escapeHtml(shareTitle)}" />

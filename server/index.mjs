@@ -91,13 +91,21 @@ app.post('/api/verify', async (req, res) => {
 });
 
 // Serve frontend static files if present (after running `npm run build`)
-const distPath = path.join(process.cwd(), '..', 'dist');
-if (distPath) {
-  app.use(express.static(distPath));
+// When started from the project root, `dist` will be at <root>/dist.
+const distPath = path.join(process.cwd(), 'dist');
+try {
+  // Only serve if the directory exists
+  // eslint-disable-next-line no-unused-vars
+  const fs = await import('fs');
+  if (fs.existsSync(distPath)) {
+    app.use(express.static(distPath));
 
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(distPath, 'index.html'));
-  });
+    app.get('*', (req, res) => {
+      res.sendFile(path.join(distPath, 'index.html'));
+    });
+  }
+} catch (e) {
+  console.warn('Could not check dist path:', e?.message || e);
 }
 
 app.listen(PORT, () => console.log(`Server listening on http://localhost:${PORT}`));

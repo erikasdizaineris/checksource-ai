@@ -1,0 +1,30 @@
+{
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**",
+      ".firebaserc"
+    ],
+    "headers": [
+      {
+        "source": "**/*.@(ts|tsx)",
+        "headers": [
+          {
+            "key": "Content-Type",
+            "value": "application/javascript"
+          }
+        ]
+      }
+    ],
+    "rewrites": [
+      {
+        "source": "!**/*.@(js|jsx|ts|tsx|css|json|png|jpg|jpeg|gif|svg|ico|woff|woff2|txt|xml|html)",
+        "destination": "/index.html"
+      }
+    ],
+    "cleanUrls": false,
+    "trailingSlash": false
+  }
+}

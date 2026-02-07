@@ -1,0 +1,7 @@
+{
+  "name": "checkSourceAI",
+  "description": "An AI-powered verification service that fact-checks social media posts, provides reliability scores (0-100%), and generates detailed shareable analysis reports using Google Search grounding.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}

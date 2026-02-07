@@ -19,6 +19,135 @@ if (!apiKey) {
 
 const ai = new GoogleGenAI({ apiKey });
 
+const clampScore = (value) => {
+  const score = Number.parseInt(String(value ?? ''), 10);
+  if (Number.isNaN(score)) return 0;
+  return Math.min(100, Math.max(0, score));
+};
+
+const sanitizeText = (value, maxLen = 140) => {
+  if (!value) return '';
+  const raw = String(value).replace(/\s+/g, ' ').trim();
+  return raw.length > maxLen ? `${raw.slice(0, maxLen - 1)}…` : raw;
+};
+
+const escapeHtml = (value) => {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+};
+
+const scoreColor = (score) => {
+  if (score >= 80) return '#16a34a';
+  if (score >= 50) return '#d97706';
+  return '#dc2626';
+};
+
+const verdictEmoji = (verdict) => {
+  const text = String(verdict || '').toLowerCase();
+  if (text.includes('reliable') && !text.includes('partially')) return '✅';
+  if (text.includes('partially')) return '⚠️';
+  if (text.includes('unreliable') || text.includes('fiction')) return '❌';
+  return '🔎';
+};
+
+app.get('/og', (req, res) => {
+  const score = clampScore(req.query.score);
+  const verdict = sanitizeText(req.query.verdict || 'Unknown', 36);
+  const summary = sanitizeText(req.query.summary || 'Fact-check summary', 140);
+  const color = scoreColor(score);
+  const emoji = verdictEmoji(verdict);
+
+  const svg = `<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="55%" stop-color="#1e293b" />
+      <stop offset="100%" stop-color="#111827" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" rx="48" fill="url(#bg)" />
+  <circle cx="980" cy="120" r="110" fill="#1f2937" opacity="0.8" />
+  <circle cx="1040" cy="180" r="40" fill="${color}" opacity="0.8" />
+
+  <text x="80" y="120" font-family="'Arial Black', 'Segoe UI', sans-serif" font-size="38" fill="#e2e8f0">checkSourceAI</text>
+  <text x="80" y="170" font-family="'Segoe UI', sans-serif" font-size="22" fill="#94a3b8">Reliability Snapshot</text>
+
+  <text x="80" y="300" font-family="'Arial Black', 'Segoe UI', sans-serif" font-size="140" fill="${color}">${score}</text>
+  <text x="340" y="300" font-family="'Segoe UI', sans-serif" font-size="34" fill="#cbd5f5">/ 100</text>
+
+  <text x="80" y="380" font-family="'Segoe UI', sans-serif" font-size="34" fill="#e2e8f0">${escapeHtml(emoji)} ${escapeHtml(verdict)}</text>
+  <text x="80" y="430" font-family="'Segoe UI', sans-serif" font-size="26" fill="#94a3b8">${escapeHtml(summary)}</text>
+
+  <rect x="80" y="480" width="320" height="56" rx="28" fill="${color}" />
+  <text x="120" y="518" font-family="'Segoe UI', sans-serif" font-size="22" fill="#ffffff">View Full Analysis →</text>
+</svg>`;
+
+  res.setHeader('Content-Type', 'image/svg+xml; charset=utf-8');
+  res.setHeader('Cache-Control', 'public, max-age=3600');
+  res.send(svg);
+});
+
+app.get('/share', (req, res) => {
+  const score = clampScore(req.query.score);
+  const verdict = sanitizeText(req.query.verdict || 'Unknown', 36);
+  const summary = sanitizeText(req.query.summary || 'Fact-check summary', 200);
+  const text = sanitizeText(req.query.text || '', 140);
+  const site = sanitizeText(req.query.site || '', 200);
+  const q = sanitizeText(req.query.q || '', 200);
+  const proto = req.headers['x-forwarded-proto'] || req.protocol;
+  const host = req.get('host');
+  const baseUrl = `${proto}://${host}`;
+
+  const ogParams = new URLSearchParams({
+    score: String(score),
+    verdict,
+    summary
+  });
+  const ogImage = `${baseUrl}/og?${ogParams.toString()}`;
+
+  const shareTitle = `${score}% Reliable • ${verdict}`;
+  const shareDesc = summary || text || 'View the reliability snapshot.';
+  const canonical = `${baseUrl}/share?${new URLSearchParams({ score: String(score), verdict }).toString()}`;
+
+  const siteLink = site ? `${site}#/?q=${encodeURIComponent(q || text)}` : '';
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>${escapeHtml(shareTitle)} - checkSourceAI</title>
+    <meta name="description" content="${escapeHtml(shareDesc)}" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="${escapeHtml(shareTitle)}" />
+    <meta property="og:description" content="${escapeHtml(shareDesc)}" />
+    <meta property="og:image" content="${escapeHtml(ogImage)}" />
+    <meta property="og:url" content="${escapeHtml(canonical)}" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="${escapeHtml(shareTitle)}" />
+    <meta name="twitter:description" content="${escapeHtml(shareDesc)}" />
+    <meta name="twitter:image" content="${escapeHtml(ogImage)}" />
+  </head>
+  <body style="margin:0; font-family: 'Segoe UI', Arial, sans-serif; background:#0f172a; color:#e2e8f0;">
+    <div style="max-width:720px; margin:0 auto; padding:48px 24px; text-align:center;">
+      <h1 style="margin:0 0 12px;">checkSourceAI</h1>
+      <p style="margin:0 0 24px; color:#94a3b8;">Reliability Snapshot</p>
+      <img src="${escapeHtml(ogImage)}" alt="Reliability snapshot" style="width:100%; border-radius:24px; box-shadow:0 24px 60px rgba(0,0,0,0.35);" />
+      ${siteLink ? `<p style=\"margin:28px 0 0;\"><a href=\"${escapeHtml(siteLink)}\" style=\"color:#38bdf8; text-decoration:none; font-weight:600;\">Open full analysis →</a></p>` : ''}
+    </div>
+  </body>
+</html>`;
+
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.setHeader('Cache-Control', 'public, max-age=300');
+  res.send(html);
+});
+
 app.post('/api/verify', async (req, res) => {
   const { content } = req.body || {};
   if (!content || typeof content !== 'string') return res.status(400).json({ error: 'content is required' });

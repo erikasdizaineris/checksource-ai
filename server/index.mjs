@@ -110,29 +110,34 @@ app.get('/og', (req, res) => {
   const emoji = verdictEmoji(verdict);
 
   const svg = `<?xml version="1.0" encoding="UTF-8"?>
-<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="800" height="800" viewBox="0 0 800 800" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%" stop-color="#0f172a" />
-      <stop offset="55%" stop-color="#1e293b" />
-      <stop offset="100%" stop-color="#111827" />
+      <stop offset="50%" stop-color="#111827" />
+      <stop offset="100%" stop-color="#1e293b" />
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#2563eb" />
+      <stop offset="100%" stop-color="#4f46e5" />
     </linearGradient>
   </defs>
-  <rect width="1200" height="630" rx="48" fill="url(#bg)" />
-  <circle cx="980" cy="120" r="110" fill="#1f2937" opacity="0.8" />
-  <circle cx="1040" cy="180" r="40" fill="${color}" opacity="0.8" />
+  <rect width="800" height="800" rx="56" fill="url(#bg)" />
+  <circle cx="640" cy="160" r="120" fill="#1f2937" opacity="0.85" />
+  <circle cx="690" cy="210" r="46" fill="${color}" opacity="0.85" />
+  <rect x="64" y="64" width="220" height="44" rx="22" fill="url(#accent)" />
+  <text x="88" y="94" font-family="'Segoe UI', Arial, sans-serif" font-size="20" fill="#ffffff">checkSourceAI</text>
 
-  <text x="80" y="120" font-family="'Arial Black', 'Segoe UI', sans-serif" font-size="38" fill="#e2e8f0">checkSourceAI</text>
-  <text x="80" y="170" font-family="'Segoe UI', sans-serif" font-size="22" fill="#94a3b8">Reliability Snapshot</text>
+  <text x="64" y="170" font-family="'Segoe UI', Arial, sans-serif" font-size="22" fill="#94a3b8">Reliability Snapshot</text>
 
-  <text x="80" y="300" font-family="'Arial Black', 'Segoe UI', sans-serif" font-size="140" fill="${color}">${score}</text>
-  <text x="340" y="300" font-family="'Segoe UI', sans-serif" font-size="34" fill="#cbd5f5">/ 100</text>
+  <text x="64" y="360" font-family="'Arial Black', 'Segoe UI', sans-serif" font-size="150" fill="${color}">${score}</text>
+  <text x="330" y="360" font-family="'Segoe UI', Arial, sans-serif" font-size="36" fill="#cbd5f5">/ 100</text>
 
-  <text x="80" y="380" font-family="'Segoe UI', sans-serif" font-size="34" fill="#e2e8f0">${escapeHtml(emoji)} ${escapeHtml(verdict)}</text>
-  <text x="80" y="430" font-family="'Segoe UI', sans-serif" font-size="26" fill="#94a3b8">${escapeHtml(summary)}</text>
+  <text x="64" y="450" font-family="'Segoe UI', Arial, sans-serif" font-size="34" fill="#e2e8f0">${escapeHtml(emoji)} ${escapeHtml(verdict)}</text>
+  <text x="64" y="510" font-family="'Segoe UI', Arial, sans-serif" font-size="26" fill="#94a3b8">${escapeHtml(summary)}</text>
 
-  <rect x="80" y="480" width="320" height="56" rx="28" fill="${color}" />
-  <text x="120" y="518" font-family="'Segoe UI', sans-serif" font-size="22" fill="#ffffff">View Full Analysis →</text>
+  <rect x="64" y="610" width="300" height="58" rx="29" fill="${color}" />
+  <text x="100" y="648" font-family="'Segoe UI', Arial, sans-serif" font-size="22" fill="#ffffff">View Full Analysis →</text>
 </svg>`;
 
   res.setHeader('Content-Type', 'image/svg+xml; charset=utf-8');

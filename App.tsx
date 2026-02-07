@@ -1,7 +1,7 @@
 import React from 'react';
 import { HashRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import Home from './pages/Home.tsx';
-import AnalysisDetail from './pages/AnalysisDetail.tsx';
+import Home from './pages/Home';
+import AnalysisDetail from './pages/AnalysisDetail';
 import { ShieldCheck, Info, MessageSquare, Twitter, Github } from 'lucide-react';
 
 const App: React.FC = () => {

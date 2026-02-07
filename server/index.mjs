@@ -111,7 +111,7 @@ app.get('/og', (req, res) => {
 
   const svg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="200" height="200" rx="22" fill="#f8fafc" />
+  <rect width="200" height="200" rx="22" fill="#ffffff" />
   <rect x="14" y="14" width="172" height="172" rx="20" fill="#ffffff" />
 
   <text x="26" y="40" font-family="'Inter', 'Segoe UI', Arial, sans-serif" font-size="16" font-weight="700" fill="#0f172a">checkSourceAI</text>
@@ -180,7 +180,7 @@ app.get('/share', (req, res) => {
     <style>
       body {
         font-family: 'Inter', sans-serif;
-        background-color: #f8fafc;
+        background-color: #ffffff;
         margin: 0;
         min-height: 100vh;
         color: #0f172a;
